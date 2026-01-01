@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field,ConfigDict
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
@@ -12,6 +12,7 @@ class ApplicationCreate(BaseModel):
 
 
 class ApplicationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     job_id: int
     applicant_id: UUID
@@ -19,9 +20,9 @@ class ApplicationOut(BaseModel):
     phone: Optional[str]
     email: EmailStr
     cover_letter: Optional[str]
-    cv_file_path: Optional[str]
     status: str
     submitted_at: datetime
-
-class Config:
-    from_attributes = True  # pydantic v2
+    cv_s3_key: Optional[str] = None
+    cv_filename: Optional[str] = None
+    cv_mime: Optional[str] = None
+    cv_size: Optional[int] = None
