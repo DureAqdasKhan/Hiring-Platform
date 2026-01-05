@@ -12,6 +12,7 @@ from app.services.application_service import (
     list_my_applications,
     list_applications_for_job,
     get_my_application_for_job,
+    get_all_user_applications,
 )
 from app.services.file_service import save_upload
 from app.s3 import presign_get_url
@@ -106,12 +107,39 @@ def my_application_for_job(job_id: str, db: Session = Depends(get_db), user: Use
 
 @router.get("/job/{job_id}", response_model=list[ApplicationOut])
 def applications_for_job(job_id: str, db: Session = Depends(get_db), user: User = Depends(require_user)):
+    """Get all applications for a specific job including CV download links and cover letters"""
     if user.role != "hiring_manager":
         raise HTTPException(status_code=403, detail="Only hiring managers can view job applications")
 
     try:
-        return list_applications_for_job(db, job_id, user)
+        applications = list_applications_for_job(db, job_id, user)
+        
+        # Add CV download URLs to each application
+        result = []
+        for app in applications:
+            app.cv_download_url = presign_get_url(app.cv_s3_key) if app.cv_s3_key else None
+            result.append(app)
+        
+        return result
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.get("/all", response_model=list[ApplicationOut])
+def get_all_applications(db: Session = Depends(get_db), user: User = Depends(require_user)):
+    """
+    Get all applications for the current user:
+    - Applicants: returns their submitted applications
+    - Hiring Managers: returns all applications across all their posted jobs
+    """
+    applications = get_all_user_applications(db, user)
+    
+    # Add CV download URLs to each application
+    result = []
+    for app in applications:
+        app.cv_download_url = presign_get_url(app.cv_s3_key) if app.cv_s3_key else None
+        result.append(app)
+    
+    return result

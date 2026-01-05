@@ -26,3 +26,5 @@ class ApplicationOut(BaseModel):
     cv_filename: Optional[str] = None
     cv_mime: Optional[str] = None
     cv_size: Optional[int] = None
+    job_title: Optional[str] = None
+    cv_download_url: Optional[str] = None

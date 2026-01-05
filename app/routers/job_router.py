@@ -31,6 +31,7 @@ async def browse_all_jobs(db: Session = Depends(get_db), user: User = Depends(re
 
 @router.post("/my_jobs")
 async def get_my_jobs(command: Command, user: User = Depends(require_user)):
+    print(command)
     if user.role != "hiring_manager":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only hiring managers can view their jobs")
     jobs = await get_jobs(command.command, user.id)

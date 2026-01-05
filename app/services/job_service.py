@@ -84,6 +84,6 @@ async def get_jobs(command: str, user_id: str):
         print(command)
         response = agent.run(command)  # returns RunResponse
         print("RESPONSE", response)
-        return {"reply": response}
+        return {"reply": response.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to process job search command")

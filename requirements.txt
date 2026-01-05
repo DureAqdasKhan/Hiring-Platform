@@ -6,4 +6,8 @@ pydantic[email]
 python-jose[cryptography]
 passlib[bcrypt]
 python-dotenv
-phi-core
+agno
+openai
+boto3
+aiosmtplib
+python-multipart

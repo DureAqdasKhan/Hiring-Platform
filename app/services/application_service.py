@@ -130,3 +130,44 @@ def list_applications_for_job(db: Session, job_id: str, hiring_manager_user):
         raise PermissionError("Not allowed")
 
     return db.scalars(select(Application).where(Application.job_id == job.id).order_by(Application.submitted_at.desc())).all()
+
+
+def get_all_user_applications(db: Session, user):
+    """
+    Get all applications for the current user:
+    - If applicant: returns their submitted applications
+    - If hiring manager: returns all applications across all their posted jobs
+    """
+    if user.role == "applicant":
+        # Get applications with job titles
+        applications = db.execute(
+            select(Application, Job.title)
+            .join(Job, Application.job_id == Job.id)
+            .where(Application.applicant_id == user.id)
+            .order_by(Application.submitted_at.desc())
+        ).all()
+        
+        # Add job_title to each application
+        result = []
+        for app, job_title in applications:
+            app.job_title = job_title
+            result.append(app)
+        return result
+    
+    elif user.role == "hiring_manager":
+        # Get all applications for jobs posted by this hiring manager with job titles
+        applications = db.execute(
+            select(Application, Job.title)
+            .join(Job, Application.job_id == Job.id)
+            .where(Job.hiring_manager_id == user.id)
+            .order_by(Application.submitted_at.desc())
+        ).all()
+        
+        # Add job_title to each application
+        result = []
+        for app, job_title in applications:
+            app.job_title = job_title
+            result.append(app)
+        return result
+    
+    return []
