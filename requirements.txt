@@ -11,3 +11,4 @@ openai
 boto3
 aiosmtplib
 python-multipart
+psycopg2-binary
